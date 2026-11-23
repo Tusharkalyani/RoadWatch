@@ -1,0 +1,116 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-feature-settings: 'tnum';
+}
+
+/* Tabular figures for audit figures */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom refined light scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B48A3E;
+}
+
+/* Leaflet Container Styling — Natural Cartographic Theme */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: #FAF9F6 !important;
+  font-family: inherit;
+  z-index: 10;
+}
+
+/* High-clarity standard tiles */
+.leaflet-tile-pane {
+  filter: saturate(1.05) contrast(1.02);
+}
+
+/* Elegant Royal Popup Styling */
+.leaflet-popup-content-wrapper {
+  background: #FFFFFF !important;
+  color: #0F2342 !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 35, 66, 0.12), 0 4px 6px -2px rgba(15, 35, 66, 0.05) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 14px 16px !important;
+  line-height: 1.45 !important;
+}
+
+.leaflet-popup-tip {
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+}
+
+.leaflet-popup-close-button {
+  color: #64748B !important;
+  padding: 6px 8px !important;
+}
+.leaflet-popup-close-button:hover {
+  color: #0F2342 !important;
+}
+
+/* Subtle Royal Pulse for Critical Alerts */
+@keyframes royal-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(180, 138, 62, 0.6);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 10px rgba(180, 138, 62, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(180, 138, 62, 0);
+  }
+}
+
+.royal-pulse {
+  animation: royal-pulse 2.2s infinite ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUp 0.25s ease-out forwards;
+}
