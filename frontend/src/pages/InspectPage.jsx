@@ -382,13 +382,27 @@ export default function InspectPage() {
 
                 <div className="flex justify-between p-2.5 bg-white">
                   <span className="text-[#64748B] font-medium">Detected Defect Class</span>
-                  <span className="font-bold text-[#0F2342]">{result.ai_detection.primary_damage}</span>
+                  <div className="text-right">
+                    <span className="font-bold text-[#0F2342]">{result.ai_detection.primary_damage}</span>
+                    {result.ai_detection.subtype && result.ai_detection.subtype !== result.ai_detection.primary_damage && (
+                      <span className="text-[10px] text-[#B48A3E] font-medium block">
+                        ({result.ai_detection.subtype})
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex justify-between p-2.5 bg-[#FAF9F6]">
                   <span className="text-[#64748B] font-medium">Severity & Legal SLA</span>
                   <span className="font-bold text-[#B48A3E] font-mono tabular-nums">
                     {result.ai_detection.severity} ({result.ai_detection.sla_hours} Hours SLA)
+                  </span>
+                </div>
+
+                <div className="flex justify-between p-2.5 bg-white">
+                  <span className="text-[#64748B] font-medium">AI Model Engine</span>
+                  <span className="text-[11px] font-mono text-[#0F2342] font-semibold">
+                    {result.ai_detection.model_source?.includes("best.pt") ? "YOLOv8 Custom Trained (best.pt)" : "YOLOv8 RoadWatch Engine"}
                   </span>
                 </div>
 

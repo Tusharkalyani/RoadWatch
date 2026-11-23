@@ -14,8 +14,10 @@ __pycache__/
 *.sqlite3
 roadwatch.db
 
-# YOLO weights & cache (automatically downloaded on first run)
+# YOLO weights & cache
 *.pt
+!backend/ml/weights/*.pt
+!models/*.pt
 yolov8n.pt
 
 # Node dependencies & production build outputs
@@ -30,6 +32,7 @@ yarn-error.log*
 # Dashcam temporary videos & anomaly dumps
 backend/static/evidence/*.mp4
 backend/static/evidence/dashcam_anomalies/
+backend/static/evidence/rw_evidence_*
 backend/static/sample_dashcam.mp4
 
 # OS & Editor generated files

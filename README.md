@@ -8,19 +8,29 @@
 ## 🚀 Quick Start (Run Locally in Under 2 Minutes)
 
 ### Option A: 1-Click All-in-One Launcher
-```bash
-./start_demo.sh
-```
+- **Windows (PowerShell)**:
+  ```powershell
+  .\start_demo.ps1
+  ```
+- **Windows (CMD)**:
+  ```cmd
+  start_demo.bat
+  ```
+- **Linux / macOS / Git Bash**:
+  ```bash
+  ./start_demo.sh
+  ```
 
 ### Option B: Step-by-Step Terminal Execution
 
 #### 1. Backend (FastAPI + YOLOv8 + SQLite)
 ```bash
 # In the project root directory
-source .venv/bin/activate
+# Activate Python environment (e.g. conda or venv)
+conda activate roadwatch-backend   # OR source .venv/bin/activate
 pip install -r requirements.txt
 
-# Run SQLite auto-seeder (populates Kothri Kalan & Sehore roads)
+# Run SQLite auto-seeder (populates Kothri Kalan & Sehore roads + Bengaluru master)
 python -m backend.seed
 
 # Start FastAPI server (Runs on port 8000)
@@ -37,6 +47,7 @@ npm run dev
 
 Open **[http://127.0.0.1:5173](http://127.0.0.1:5173)** in your browser.
 API Swagger Docs are available at **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**.
+ML Engine Status is available at **[http://127.0.0.1:8000/api/ml/status](http://127.0.0.1:8000/api/ml/status)**.
 
 ---
 
@@ -44,15 +55,13 @@ API Swagger Docs are available at **[http://127.0.0.1:8000/docs](http://127.0.0.
 
 To demonstrate real-time video/dashcam defect frame-sampling to your project evaluators:
 ```bash
-source .venv/bin/activate
-
-# Interactive GUI window demo (processes video, draws HUD telemetry, and logs GPS anomalies):
+# Interactive GUI window demo (processes video, runs YOLOv8, draws HUD telemetry, and logs GPS anomalies):
 python backend/run_dashcam_demo.py
 
 # Headless / Terminal table demo:
 python backend/run_dashcam_demo.py --headless --skip 2
 ```
-*Note: If no custom MP4 dashcam clip is supplied, the script automatically synthesizes a high-fidelity test video with moving highway lane markings and approaching asphalt defects, saving keyframe anomalies to `backend/static/evidence/dashcam_anomalies/`.*
+*Note: If no custom MP4 dashcam clip is supplied, the script automatically synthesizes a high-fidelity test video with moving highway lane markings and approaching asphalt defects, running YOLOv8 inference and saving keyframe anomalies to `backend/static/evidence/dashcam_anomalies/`.*
 
 ---
 
@@ -60,13 +69,14 @@ python backend/run_dashcam_demo.py --headless --skip 2
 
 | Module | Feature | Implementation Details |
 | :--- | :--- | :--- |
-| **AI Detection & SLA** | **YOLOv8 Road Defect Inference** | Classifies 5 target defect types: `Pothole`, `Crack`, `Waterlogging`, `Missing Signage`, and `Road Cave-in`. Supports `.pt` model drop-in (`models/roadwatch_yolov8.pt`) with `yolov8n.pt` and zero-crash heuristic fallback. |
-| **Severity Matrix** | **Automated SLA Engine** | Computes bounding-box area percentage: <br>• `Road Cave-in` or Area &gt; 15% ➔ **Critical (48h SLA)**<br>• `Pothole`/`Waterlogging` &amp; Area 7–15% ➔ **High (7d SLA)**<br>• `Crack`/`Missing Signage` or Area 3–7% ➔ **Medium (15d SLA)**<br>• Area &lt; 3% ➔ **Low (30d SLA)** |
+| **AI Detection & SLA** | **Trained YOLOv8 Defect Inference** | Integrates custom-trained YOLOv8 weights from `backend/ml/weights/best.pt` detecting: `pothole`, `alligator_crack`, `transverse_crack`, `longitudinal_crack`, and `road_marking_blur`. Maps to canonical classes (`Pothole`, `Crack`, `Missing Signage`, `Road Cave-in`, `Waterlogging`) with subtype granularity. Includes zero-crash heuristic fallback. |
+| **ML Engine API** | **Direct Inference & Status Endpoints** | Exposes `/api/ml/status` for inspection of architecture, active weights, and class mappings, plus `/api/ml/analyze` for raw model evaluation via Swagger. Supported via standalone module `backend.ml.analyzer`. |
+| **Severity Matrix** | **Automated SLA Engine** | Computes bounding-box area percentage: <br>• `Road Cave-in` or Area &gt; 15% ➔ **Critical (48h SLA)**<br>• `Pothole`/`Waterlogging` &amp; Area 7–15% or `Alligator Crack` ➔ **High (7d SLA)**<br>• `Crack`/`Missing Signage` or Area 3–7% ➔ **Medium (15d SLA)**<br>• Area &lt; 3% ➔ **Low (30d SLA)** |
 | **Multi-Region Civic Routing** | **Smart Jurisdiction Rules** | • **MP Region**: NH ➔ NHAI Bhopal, SH ➔ MP PWD Sehore, MDR ➔ District Collector / RES Sehore.<br>• **Bengaluru (BBMP)**: NH ➔ NHAI PIU Bengaluru, SH ➔ KSHIP / Karnataka PWD, MDR ➔ BBMP Road Infrastructure Cell ([Division] Division) with direct engineer contacts. |
 | **Database & GIS** | **Dual Region Master Ingestion** | Ingests both **Kothri Kalan & Sehore (MP)** campus corridors AND **564 Real Bengaluru Urban Corridors** from `bengaluru_roads_master.csv` across all 8 BBMP divisions with real WKT geometries, engineer directories, and DLP warranty records. |
 | **Contractor & DLP Accountability** | **Defect Liability Period (DLP) & Engineers** | Displays statutory contractor warranty status (Active DLP vs. Expired), plus direct contacts for Executive Engineer, Assistant Executive Engineer, and Assistant Engineer. |
 | **Fiscal Accountability** | **3-Level Budget Comparison** | Displays Sanctioned vs. Released vs. Spent budget bars with dynamic **Audit Red Flags** (e.g. *Released &gt; Sanctioned* anomalies or *&gt;85% spent on critical/failing roads*). |
-| **Multi-Page Architecture & Design** | **Royal Civic Governance System** | Replaced cluttered single-page layout with `react-router-dom` multi-page routing:<br>• `/` — **Executive Overview** (District road health summary & key metrics)<br>• `/map` — **Tap-a-Road GIS Map** (Full-height natural cartography & road drawer)<br>• `/inspect` — **AI Damage Inspector** (Minimalist photo upload & YOLOv8 receipt)<br>• `/ledger` — **Accountability Ledger** (Formal audit table & evidence modal)<br>• **Aesthetic:** Warm Alabaster (`#FAF9F6`), Deep Imperial Navy (`#0F2342`), Antique Gold (`#B48A3E`), hairline borders (`#E2E8F0`), and `Playfair Display` serif typography with a strict limit of one primary action button per page. |
+| **Multi-Page Architecture & Design** | **Royal Civic Governance System** | Replaced cluttered single-page layout with `react-router-dom` multi-page routing:<br>• `/` — **Executive Overview** (District road health summary & key metrics)<br>• `/map` — **Tap-a-Road GIS Map** (Full-height natural cartography & road drawer)<br>• `/inspect` — **AI Damage Inspector** (Photo upload, YOLOv8 receipt & statutory routing)<br>• `/ledger` — **Accountability Ledger** (Formal audit table & evidence modal)<br>• **Aesthetic:** Warm Alabaster (`#FAF9F6`), Deep Imperial Navy (`#0F2342`), Antique Gold (`#B48A3E`), hairline borders (`#E2E8F0`), and `Playfair Display` serif typography with a strict limit of one primary action button per page. |
 
 ---
 
@@ -131,8 +141,13 @@ RoadWatch/
 │   ├── database.py              # SQLite / SQLAlchemy engine & session management
 │   ├── main.py                  # FastAPI application with routing & REST endpoints
 │   ├── models.py                # SQLAlchemy models (Road, Complaint)
-│   ├── run_dashcam_demo.py      # Video dashcam frame-sampling CLI engine
-│   ├── seed.py                  # 5 realistic local roads & 6 historical complaints seeder
+│   ├── ml/                      # Machine learning engine & trained weights
+│   │   ├── analyzer.py          # Standalone YOLOv8 inference & damage severity classifier
+│   │   └── weights/             # Custom trained weights (best.pt, last.pt)
+│   ├── run_dashcam_demo.py      # Video dashcam frame-sampling CLI engine with YOLOv8
+│   ├── seed.py                  # Dual-region seeder (5 MP roads + 564 Bengaluru corridors)
+│   ├── data/
+│   │   └── bengaluru_roads_master.csv  # 564 Bengaluru corridors with WKT geometries
 │   └── static/
 │       ├── evidence/            # Saved AI annotated bounding-box images
 │       └── sample_dashcam.mp4   # Generated synthetic dashcam test clip
@@ -156,9 +171,11 @@ RoadWatch/
 │   ├── index.html                      # HTML with Playfair Display & Plus Jakarta Sans
 │   ├── package.json                    # Node dependencies (including react-router-dom)
 │   └── vite.config.js                  # Vite configuration with proxy to FastAPI backend
-├── models/                             # Directory for optional custom weights (roadwatch_yolov8.pt)
+├── models/                             # Custom weights directory (roadwatch_yolov8.pt)
 ├── requirements.txt                    # Python dependencies
-├── start_demo.sh                       # 1-click startup bash script
+├── start_demo.sh                       # 1-click startup bash script (Linux / macOS / Git Bash)
+├── start_demo.bat                      # 1-click Windows CMD startup script
+├── start_demo.ps1                      # 1-click Windows PowerShell startup script
 └── README.md                           # Documentation & viva review guide
 ```
 

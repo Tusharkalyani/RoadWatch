@@ -1,8 +1,17 @@
 import os
+import sys
 import math
 import random
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
+
+# Ensure project root is on sys.path so running from inside backend/ works seamlessly
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(CURRENT_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+if CURRENT_DIR not in sys.path:
+    sys.path.insert(0, CURRENT_DIR)
 
 from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -74,13 +83,55 @@ def find_nearest_road(lat: float, lon: float, db: Session, region: Optional[str]
 
 @app.get("/api/health")
 def health_check():
+    from backend.ai_detector import ML_WEIGHTS_PATH
     return {
         "status": "healthy",
         "service": "RoadWatch AI Platform API",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "ai_engine": "YOLOv8 + OpenCV/PIL",
+        "weights_path": ML_WEIGHTS_PATH if os.path.exists(ML_WEIGHTS_PATH) else "models/roadwatch_yolov8.pt",
         "supported_regions": ["MP (Kothri Kalan / Sehore)", "BLR (Bengaluru Urban BBMP)"]
     }
+
+@app.get("/api/ml/status")
+def get_ml_status():
+    """Returns runtime status of the loaded YOLOv8 ML model & classes."""
+    try:
+        from backend.ai_detector import get_yolo_model, ML_WEIGHTS_PATH, ROOT_MODELS_PATH
+        model = get_yolo_model()
+        classes = model.names if model and hasattr(model, "names") else {}
+        weights_file = ML_WEIGHTS_PATH if os.path.exists(ML_WEIGHTS_PATH) else ROOT_MODELS_PATH
+        return {
+            "status": "ready" if model is not None else "heuristic_fallback",
+            "model_architecture": "Ultralytics YOLOv8",
+            "weights_file": weights_file,
+            "weights_exists": os.path.exists(weights_file),
+            "classes": classes,
+            "target_defects": ["Pothole", "Crack", "Waterlogging", "Missing Signage", "Road Cave-in"],
+            "sla_matrix": {
+                "Critical": "48 Hours (Cave-in or >15% bbox area)",
+                "High": "7 Days (Pothole / Waterlogging >7% bbox area)",
+                "Medium": "15 Days (Crack / Signage 3-7% bbox area)",
+                "Low": "30 Days (<3% bbox area)"
+            }
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "detail": str(e)
+        }
+
+@app.post("/api/ml/analyze")
+async def analyze_image_endpoint(file: UploadFile = File(...)):
+    """
+    Direct ML model test endpoint (accepts image, returns raw detection + SLA mapping).
+    """
+    image_bytes = await file.read()
+    if not image_bytes:
+        raise HTTPException(status_code=400, detail="Empty image uploaded.")
+    from backend.ml.analyzer import analyze_image
+    result = analyze_image(image_bytes)
+    return result
 
 @app.get("/api/stats")
 def get_stats(region: Optional[str] = None, db: Session = Depends(get_db)):
