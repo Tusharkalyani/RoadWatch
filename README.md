@@ -1,6 +1,4 @@
 # RoadWatch: AI-Powered Road Accountability Platform
-### 40% Phase-1 MVP Prototype — College Project Review & Live Viva Walkthrough
-
 > **RoadWatch** is a map-first civic road accountability system that bridges **computer vision road-defect detection** (YOLOv8 + OpenCV) with **statutory jurisdiction routing** (NHAI / State PWD / Rural RES) and **transparent 3-level fiscal tracking** (Sanctioned vs. Released vs. Spent).
 
 ---
